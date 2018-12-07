@@ -1,0 +1,296 @@
+/* --------------------------------------------------------------------------- */
+/* Main layout */
+
+html {
+    height: 100%;
+}
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------- */
+/* CodeMirror style */
+
+/* .CodeMirror, #right {
+  height: -moz-calc(100vh - 0px);
+  height: -webkit-calc(100vh - 0px);
+  height: -o-calc(100vh - 0px);
+  height: calc(100vh - 0px);
+}*/
+.CodeMirror {
+    /* background: #ffffff; */
+    /* background: #ffffe8; */
+    background: #fff8dd;
+    /* font-family: "Go Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace; */
+    font-family: "Source Code Pro", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 14px;
+    height: 100%;
+}
+.CodeMirror-gutters {
+    background: #fff8dd; /* #fff1cc; */
+    border: none;
+}
+.CodeMirror-linenumber {
+    color: #ccc;
+}
+body {
+    background: white;
+    /* font-family: "Go", Sans-Serif; */
+    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    /* height: 100%; */
+}
+button, input, optgroup, select, textarea {
+    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* Specific for cm-ciao-mode.js CodeMirror mode */
+
+.cm-ciao-variable {
+    color: darkorange;
+}
+.cm-ciao-neck {
+    color: orangered;
+    font-weight: 600;
+}
+.cm-ciao-decl {
+    color: navy;
+    font-weight: 600;
+}
+.cm-ciao-status-check {
+    color: navy;
+    font-weight: 600;
+}
+.cm-ciao-status-true {
+    color: ForestGreen;
+    font-weight: 600;
+}
+.cm-ciao-status-false {
+    color: red;
+    font-weight: 600;
+}
+.cm-ciao-status-trust {
+    color: coral;
+    font-weight: 600;
+}
+.cm-ciao-status-entry {
+    color: brown;
+    font-weight: 600;
+}
+.cm-ciao-status-checked {
+    color: darkgreen;
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------- */
+/* UI elements: frames, buffers, menu items, toolbar buttons, etc. */
+
+.frame_menu {
+    line-height: 32px; /* center vertically */
+    height: 32px;
+    overflow-y: hidden;
+    /* background: black; */
+    /* color: white; */
+    border-bottom: 1px solid #dedede;
+    background: #f8f8f8;
+    color: black;
+    padding: 0px 4px 0px 4px;
+}
+
+/* (as a span inside .frame_menu) */
+.frame_title {
+    float: left;
+    padding-left: 12px;
+    padding-right: 12px;
+    line-height: 32px; /* center vertically */
+    height: 32px;
+    /* background: purple; */
+    /* color: white; */
+    background: #f8f8f8;
+    color: black;
+    font-size: 16px;
+    font-weight: normal;
+    overflow-y: hidden;
+}
+
+.frame_buttons {
+    height: 32px;
+}
+.frame_buttons button {
+    /* box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.22); */
+    border: 0px solid #b0d5e2;
+    border-radius: 2px;
+    background: #f8f8f8;
+    color: #4263ab;
+    font-weight: normal;
+    margin: 1px;
+    padding: 4px 8px 4px 8px;
+}
+.frame_buttons button:focus {
+    outline: 0;
+    background: #4263ab;
+    color: white;
+}
+.frame_buttons button:hover {
+    background: #4263ab;
+    color: white;
+}
+.frame_buttons button:active {
+    background: #4263ab;
+    color: white;
+}
+
+button.killbutton {
+    border: 0px solid #400;
+    border-radius: 2px;
+    background: #800;
+    color: #ddd;
+    margin: 2px;
+}
+button.killbutton:focus {
+    background: #a00;
+}
+button.killbutton:hover {
+    background: #a00;
+}
+button.killbutton:active {
+    background: #a00;
+}
+
+.frame_buffers {
+    height: calc(100% - 32px); /* substract menu height */
+    background-color: #c0c0c0;
+}
+
+.buffer_title {
+    font-size: 14px;
+    line-height: 24px; /* center vertically */
+    height: 24px;
+    background: #f4f4f4;
+    color: #888;
+    /* font-weight: bold; */
+    padding-left: 8px;
+    padding-right: 8px;
+}
+.buffer_contents {
+    line-height: 1.05em;
+    height: calc(100% - 24px);
+}
+
+.menu_item {
+    font-size: 14px;
+    margin: 4px;
+    padding: 4px;
+    border-bottom: 1px solid #ddd;
+}
+.menu_item > button { font-size: 14px; }
+.menu_item > input { font-size: 14px; }
+.menu_item > optgroup { font-size: 14px; }
+.menu_item > select { font-size: 14px; }
+.menu_item > textarea { font-size: 14px; }
+
+.menu_title {
+    font-weight: bold;
+}
+
+.menu_desc {
+    padding: 2px;
+    color: #888;
+}
+
+.menu_flag {
+    font-family: "Source Code Pro", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    color: #008;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Split pane (requires split.min.js) */
+
+body {
+    /* padding: 4px; */
+    box-sizing: border-box; /* required for split pane */
+}
+
+.split {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.content {
+    /* border: 1px solid #C0C0C0; */
+    background-color: #fff;
+}
+
+.gutter {
+}
+
+.gutter.gutter-horizontal {
+    cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+    cursor: row-resize;
+}
+
+.split.split-horizontal, .gutter.gutter-horizontal {
+    height: 100%;
+    float: left;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Modal screen */
+
+#modal-screen {
+    /* background-color: rgba(0,0,0,0.2); */
+    position: fixed;
+    z-index: 9001;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    padding-top: 96px;
+}
+
+#modal-content {
+    margin: auto;
+    padding: 8px;
+    width: 80%;
+    max-height: calc(80% - 96px);
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    /* box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); */
+    /* box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    z-index: 9002;
+    background-color: white;
+    overflow-y: auto;
+}
+
+/* --------------------------------------------------------------------------- */
+/* In-progress indicator (on the top-right corner) */
+/* (avoid animations: they consume CPU) */
+
+.in-progress {
+    color: white;
+    font-size: 16px;
+    height: 32px;
+    margin: 8px;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Custom for LPdoc output */
+
+.lpdoc-page {
+    overflow-y: scroll;
+    height: 100%;
+    line-height: 1.3em; /* (make it consistent with lpdoc.css) */
+}
