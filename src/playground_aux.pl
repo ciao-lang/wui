@@ -8,10 +8,10 @@
 :- export(detect_langmode/2).
 % Detect language from filename F
 detect_langmode(F, LangMode) :-
-	% Detect from extension
-	path_splitext(F, _, Ext),
-	ext_langmode(Ext, LangMode),
-	!.
+    % Detect from extension
+    path_splitext(F, _, Ext),
+    ext_langmode(Ext, LangMode),
+    !.
 detect_langmode(_, 'text/plain'). % plain text otherwise
 
 % TODO: duplicated somewhere else!
@@ -33,17 +33,17 @@ ext_langmode('.txt', 'text/plain').
 :- export(examples_at/4).
 % Enumerate all files F+Ext at Dir+Prefix directory as Prefix+F+Ext
 examples_at(_Dir, Prefix, Ext, Rel) :-
-	atom_concat('NEW', Ext, NewName),
-	path_concat(Prefix, NewName, Rel). % TODO: dummy for NEW files (improve?)
+    atom_concat('NEW', Ext, NewName),
+    path_concat(Prefix, NewName, Rel). % TODO: dummy for NEW files (improve?)
 examples_at(Dir, Prefix, Ext, Rel) :-
-	( Prefix = '' -> Dir2 = Dir ; path_concat(Dir, Prefix, Dir2) ),
-	directory_files(Dir2, Xs),
-	sort(Xs, Xs2),
-	member(X, Xs2),
-	\+ X = '.',
-	\+ X = '..',
-	atom_concat(_, Ext, X),
-	path_concat(Prefix, X, Rel).
+    ( Prefix = '' -> Dir2 = Dir ; path_concat(Dir, Prefix, Dir2) ),
+    directory_files(Dir2, Xs),
+    sort(Xs, Xs2),
+    member(X, Xs2),
+    \+ X = '.',
+    \+ X = '..',
+    atom_concat(_, Ext, X),
+    path_concat(Prefix, X, Rel).
 
 % ---------------------------------------------------------------------------
 
@@ -52,9 +52,9 @@ examples_at(Dir, Prefix, Ext, Rel) :-
 :- export(sane_path/1).
 % Check that the path is relative and does not contain '..'
 sane_path(File) :-
-	path_is_relative(File),
-	path_split_list(File, Cs),
-	\+ (member(C, Cs), C = '..').
+    path_is_relative(File),
+    path_split_list(File, Cs),
+    \+ (member(C, Cs), C = '..').
 
 
 

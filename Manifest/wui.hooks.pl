@@ -6,7 +6,7 @@
 
 % (hook)
 '$builder_hook'(custom_run(fetch_externals, [])) :- !,
-	third_party_custom_install(wui).
+    third_party_custom_install(wui).
 
 m_bundle_foreign_dep(wui, cmd, 'node', 'Node (http://nodejs.org)').
 m_bundle_foreign_dep(wui, cmd, 'npm', 'NPM (http://www.npmjs.com)').
@@ -28,26 +28,26 @@ m_bundle_foreign_dep(wui, bower, 'git://github.com/adobe-fonts/source-code-pro.g
 
 % (hook)
 '$builder_hook'(custom_run(dist, [])) :- !,
-	site_build.
+    site_build.
 
 site_build :-
-	% TODO: explain: this is similar to linking an executable!
-	%   (it puts all resources together)
-	site_copy_files,
-	site_link_bower_components.
+    % TODO: explain: this is similar to linking an executable!
+    %   (it puts all resources together)
+    site_copy_files,
+    site_link_bower_components.
 
 site_copy_files :-
-	% TODO: use other paths?
-	% TODO: remove 'httpserv.file_path'/2 entries
-	site_glob_cp(wui, 'src', '*.js', '/js'),
-	site_glob_cp(wui, 'html/js', '*.js', '/js'),
-	site_glob_cp(wui, 'html/css', '*.css', '/css'),
-	% (for codemirror)
-	site_glob_cp(wui, 'html/mode/ciao', '*.js', '/mode/ciao'),
-	site_glob_cp(wui, 'html/theme', '*.css', '/theme'),
-	% TODO: share
-	site_glob_cp(core, 'library/syntax_highlight/css', '*.css', '/css'),
-	site_glob_cp(lpdoc, 'etc', '*.css', '/css'),
-	% TODO: share
-	site_glob_cp(core, 'library/actmod_http', '*.js', '/js').
+    % TODO: use other paths?
+    % TODO: remove 'httpserv.file_path'/2 entries
+    site_glob_cp(wui, 'src', '*.js', '/js'),
+    site_glob_cp(wui, 'html/js', '*.js', '/js'),
+    site_glob_cp(wui, 'html/css', '*.css', '/css'),
+    % (for codemirror)
+    site_glob_cp(wui, 'html/mode/ciao', '*.js', '/mode/ciao'),
+    site_glob_cp(wui, 'html/theme', '*.css', '/theme'),
+    % TODO: share
+    site_glob_cp(core, 'library/syntax_highlight/css', '*.css', '/css'),
+    site_glob_cp(lpdoc, 'etc', '*.css', '/css'),
+    % TODO: share
+    site_glob_cp(core, 'library/actmod_http', '*.js', '/js').
 

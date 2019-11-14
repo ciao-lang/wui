@@ -43,46 +43,46 @@
 
 :- export(menu_to_json/2).
 menu_to_json(MenuName, Items) :-
-	generate_offline_menu(MenuName, MenuItems),
-	items_to_json(MenuItems, Items).
+    generate_offline_menu(MenuName, MenuItems),
+    items_to_json(MenuItems, Items).
 
 % From menu_item/7 to JSON representation
 items_to_json([], []).
 items_to_json([M|Ms], [X|Xs]) :-
-	M = menu_item(Menu, Flag, Title, Help, Options, Def_Opt, Guard),
-	decomp_menu_node(Menu, Menu0, Level),
-	X = json([kind = string("menu_item"),
-	          menu = ~atomic_to_json_str(Menu0),
-	          level = ~atomic_to_json_str(Level),
-	          flag = ~atomic_to_json_str(Flag),
-		  title = ~atomic_to_json_str(Title),
-		  help = ~atomic_to_json_str(Help),
-		  options = ~opts_to_json(Options),
-		  def_opt = ~atomic_to_json_str(Def_Opt),
-		  guard = ~or_guard(Guard)]),
-	items_to_json(Ms, Xs).	  
+    M = menu_item(Menu, Flag, Title, Help, Options, Def_Opt, Guard),
+    decomp_menu_node(Menu, Menu0, Level),
+    X = json([kind = string("menu_item"),
+              menu = ~atomic_to_json_str(Menu0),
+              level = ~atomic_to_json_str(Level),
+              flag = ~atomic_to_json_str(Flag),
+              title = ~atomic_to_json_str(Title),
+              help = ~atomic_to_json_str(Help),
+              options = ~opts_to_json(Options),
+              def_opt = ~atomic_to_json_str(Def_Opt),
+              guard = ~or_guard(Guard)]),
+    items_to_json(Ms, Xs).    
 
 opts_to_json(ask(A, _)) := R :- !, % TODO: write a different type
-	R = ~atomic_to_json_str(A).
+    R = ~atomic_to_json_str(A).
 opts_to_json(alist(As)) := R :- !, % TODO: write a different type
-	atomiclst_to_json_strlist(As, R).
+    atomiclst_to_json_strlist(As, R).
 opts_to_json(Options) := _ :- % TODO: incorrect
-	throw(error(bad_options(Options), menu_to_json/2)).
+    throw(error(bad_options(Options), menu_to_json/2)).
 
 or_guard([]) := [] :- !.
 or_guard([G|Gs]) := [~and_guard(G)|Xs] :-
-	Xs = ~or_guard(Gs).
+    Xs = ~or_guard(Gs).
 
 and_guard([]) := [] :- !.
 and_guard([G|Gs]) := [~guard_lit(G)|Xs] :-
-	Xs = ~and_guard(Gs).
+    Xs = ~and_guard(Gs).
 
 % TODO: write in a nicer way
 guard_lit(F=V) := R :-
-	( V = neq(A) ->
-	    R = [string("!="), ~atomic_to_json_str(F), ~atomic_to_json_str(A)]
-	; R = [string("=="), ~atomic_to_json_str(F), ~atomic_to_json_str(V)]
-	).
+    ( V = neq(A) ->
+        R = [string("!="), ~atomic_to_json_str(F), ~atomic_to_json_str(A)]
+    ; R = [string("=="), ~atomic_to_json_str(F), ~atomic_to_json_str(V)]
+    ).
 
 % ---------------------------------------------------------------------------
 
@@ -92,20 +92,20 @@ guard_lit(F=V) := R :-
 % (from json answer to flag values in the same format required by
 %  menu_generator:restore_menu_flags_list/1)
 get_menu_values(json(Xs), FlagValuesList) :-
-	get_menu_values_(Xs, FlagValuesList).
+    get_menu_values_(Xs, FlagValuesList).
 
 get_menu_values_([], []).
 get_menu_values_([Flag=Args|Fs], [(Menu,Flag,Value)|FVs]) :-
-	% TODO: not very nice (decodes menu, flag, and value)
-	Args = [string(Menu0),string(Level0),string(Value0)],
-	number_codes(Level, Level0),
-	atom_codes(Menu1, Menu0),
-	comp_menu_node(Menu1, Level, Menu),
-	atom_codes(Value, Value0), % TODO: value may be numeric too!
-	!,
-	get_menu_values_(Fs, FVs).
+    % TODO: not very nice (decodes menu, flag, and value)
+    Args = [string(Menu0),string(Level0),string(Value0)],
+    number_codes(Level, Level0),
+    atom_codes(Menu1, Menu0),
+    comp_menu_node(Menu1, Level, Menu),
+    atom_codes(Value, Value0), % TODO: value may be numeric too!
+    !,
+    get_menu_values_(Fs, FVs).
 get_menu_values_([_|Fs], FVs) :-
-	get_menu_values_(Fs, FVs).
+    get_menu_values_(Fs, FVs).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Encode a toolbar as JSON (for playground)").
@@ -115,29 +115,29 @@ get_menu_values_([_|Fs], FVs) :-
 
 :- export(toolbar_to_json/3).
 toolbar_to_json(ToolbarName, Mod, Items) :-
-	findall(X, toolbar_json(ToolbarName, Mod, X), Items).
+    findall(X, toolbar_json(ToolbarName, Mod, X), Items).
 
 % (nondet)
 toolbar_json(ToolbarName, Mod, X) :-
-	(ToolbarName as toolbar).def(Title, Cmd0),
-	nonvar(Cmd0),
-	( Cmd0 = Cmd-Props ->
-	    cmd_opts(Props, Extra, Extra1),
-	    extra(Props, Extra1, [])
-	; Cmd = Cmd0,
-	  Extra = []
-	),
-	atom_concat(Mod, '.', MCmd0), % TODO: use mod_concat
-	atom_concat(MCmd0, Cmd, MCmd),
-	X = json([text = ~atomic_to_json_str(Title),
-	          value = ~atomic_to_json_str(MCmd)|Extra]).
+    (ToolbarName as toolbar).def(Title, Cmd0),
+    nonvar(Cmd0),
+    ( Cmd0 = Cmd-Props ->
+        cmd_opts(Props, Extra, Extra1),
+        extra(Props, Extra1, [])
+    ; Cmd = Cmd0,
+      Extra = []
+    ),
+    atom_concat(Mod, '.', MCmd0), % TODO: use mod_concat
+    atom_concat(MCmd0, Cmd, MCmd),
+    X = json([text = ~atomic_to_json_str(Title),
+              value = ~atomic_to_json_str(MCmd)|Extra]).
 
 cmd_opts(Props) -->
-	( { member(use_input, Props) } -> [use_input = true] ; [] ),
-	( { member(use_upload, Props) } -> [upload = true] ; [] ).
+    ( { member(use_input, Props) } -> [use_input = true] ; [] ),
+    ( { member(use_upload, Props) } -> [upload = true] ; [] ).
 
 extra(Props) --> { member(extra(Extra), Props) }, !,
-	emit(Extra).
+    emit(Extra).
 extra(_Props) --> [].
 
 emit([]) --> [].

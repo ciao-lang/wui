@@ -32,38 +32,38 @@
 
 :- export(env_init/0).
 env_init :-
-	retractall_fact(env_data(_,_)).
+    retractall_fact(env_data(_,_)).
 
 :- export(env_write/2).
 env_write(Name, Value) :-
-	retractall_fact(env_data(Name, _)),
-	assertz_fact(env_data(Name, Value)).
+    retractall_fact(env_data(Name, _)),
+    assertz_fact(env_data(Name, Value)).
 
 :- export(env_read/2).
 env_read(Name) := Value :-
-	( current_fact(env_data(Name, Value0)) -> Value = Value0 ; fail ).
+    ( current_fact(env_data(Name, Value0)) -> Value = Value0 ; fail ).
 
 % ===========================================================================
 % Local-side Env updates
 
 :- suspendable(set_title(term)).
 set_title(Title) :-
-	env_write(title, Title).
+    env_write(title, Title).
 
 :- suspendable(set_layout(term)).
 set_layout(Layout) :-
-	env_write(layout, Layout).
+    env_write(layout, Layout).
 
 :- suspendable(set_output_html(term)).
 set_output_html(Xs) :-
-	env_write(output_html, Xs).
+    env_write(output_html, Xs).
 
 :- suspendable(pause_and_call(term, term)).
 % Execute FiberSusp after DelayMs milliseconds
 pause_and_call(DelayMs, FiberSusp) :-
-	InitJSCmd = ~'fiberSusp->jscmd'(FiberSusp),
-	JSCmd = set_timeout(InitJSCmd, DelayMs),
-	yield_residue(jscmd(JSCmd)). % (forces suspension for residue_reify/2)
+    InitJSCmd = ~'fiberSusp->jscmd'(FiberSusp),
+    JSCmd = set_timeout(InitJSCmd, DelayMs),
+    yield_residue(jscmd(JSCmd)). % (forces suspension for residue_reify/2)
 
 % ===========================================================================
 
@@ -71,8 +71,8 @@ pause_and_call(DelayMs, FiberSusp) :-
 % :- meta_predicate do_set_fact(transient).
 :- suspendable(do_set_fact(term)).
 do_set_fact(Opt) :-
-	t_defined_data(Opt),
-	t_set_fact(Opt).
+    t_defined_data(Opt),
+    t_set_fact(Opt).
 
 :- suspendable(push_window_location(term)). % (builtin)
 % (see 'fiberSusp->jscmd'/2 for implementation)
@@ -91,11 +91,11 @@ redraw_nb(_) :- throw(error(undefined, wui_html:redraw_nb/1)).
 % TODO: is there a better way?
 % (hook for '$fiber_susp'/2)
 '$fiber_susp_hook'('wui_html.redraw'(PA2)) := PA :- !,
-	PA2 = '$fiberSusp'(FiberData, G2),
-	PA = '$fiberSusp'(FiberData, 'wui_html.redraw'(G2)).
+    PA2 = '$fiberSusp'(FiberData, G2),
+    PA = '$fiberSusp'(FiberData, 'wui_html.redraw'(G2)).
 '$fiber_susp_hook'('wui_html.redraw_nb'(PA2)) := PA :- !,
-	PA2 = '$fiberSusp'(FiberData, G2),
-	PA = '$fiberSusp'(FiberData, 'wui_html.redraw_nb'(G2)).
+    PA2 = '$fiberSusp'(FiberData, G2),
+    PA = '$fiberSusp'(FiberData, 'wui_html.redraw_nb'(G2)).
 
 % ---------------------------------------------------------------------------
 
@@ -104,21 +104,21 @@ redraw_nb(_) :- throw(error(undefined, wui_html:redraw_nb/1)).
 % actmod_get_self_mod/1) and Goal (env_init/0 is called to cleanup the
 % view data).  This view may encode residual goals.
 dumpHTML(Goal) :-
-	actmod_get_self_mod(MainMod),
-	env_init,
-	residue_reify(wui_html:setup_and_call(MainMod, Goal), Residue),
-	render_and_output(Residue).
+    actmod_get_self_mod(MainMod),
+    env_init,
+    residue_reify(wui_html:setup_and_call(MainMod, Goal), Residue),
+    render_and_output(Residue).
 
 :- suspendable(setup_and_call(term,term)). % (internal)
 setup_and_call(Mod, Goal) :-
-	fiber_meta_call(Mod:setup),
-	fiber_meta_call(Goal).
+    fiber_meta_call(Mod:setup),
+    fiber_meta_call(Goal).
 
 :- suspendable(render_and_output(term)). % (internal)
 render_and_output(Residue) :-
-	% Render page (from current env) into HTML
-	env_render_page(Residue, HTML),
-	yield_residue(html(HTML)). % (forces suspension for residue_reify/2)
+    % Render page (from current env) into HTML
+    env_render_page(Residue, HTML),
+    yield_residue(html(HTML)). % (forces suspension for residue_reify/2)
 
 % ---------------------------------------------------------------------------
 
@@ -134,57 +134,57 @@ wui_redraw_nb(PA) := ~fiberSusp(redraw_nb(PA)).
 
 % :- export(env_render_page/2).
 env_render_page(Cont, Out) :-
-	Layout = ~get_layout,
-	% TODO: translate Cont to JS before
-	render_layout(Layout, Cont, Out, []).
+    Layout = ~get_layout,
+    % TODO: translate Cont to JS before
+    render_layout(Layout, Cont, Out, []).
 
 get_layout := Layout :-
-	( Layout0 = ~env_read(layout) -> Layout = Layout0
-	; Layout = none
-	).
+    ( Layout0 = ~env_read(layout) -> Layout = Layout0
+    ; Layout = none
+    ).
 
 % Render page as HTML
 render_layout(Layout, Cont) -->
-	[start],
-	[begin(head)],
-	( { Title = ~env_read(title) } ->
-	    [title(Title)]
-	; []
-	),
-	{ (Layout as layout).css_links(Links) },
-	env_links(Links),
-	[end(head)],
-	% TODO: use role='document' in body? (see web standards)
-	[begin(body, [])],
-	{ (Layout as layout).render_main(MainR) },
-	emit(MainR),
-	% Placed at the end of the document so the pages load faster
-	% TODO: Add ciao-actmod.js if needed
-	{ (Layout as layout).js_scripts(Scripts) },
-	env_scripts(Scripts),
-	emit_residual_js(Cont),
-	[end(body)],
-	[end].
+    [start],
+    [begin(head)],
+    ( { Title = ~env_read(title) } ->
+        [title(Title)]
+    ; []
+    ),
+    { (Layout as layout).css_links(Links) },
+    env_links(Links),
+    [end(head)],
+    % TODO: use role='document' in body? (see web standards)
+    [begin(body, [])],
+    { (Layout as layout).render_main(MainR) },
+    emit(MainR),
+    % Placed at the end of the document so the pages load faster
+    % TODO: Add ciao-actmod.js if needed
+    { (Layout as layout).js_scripts(Scripts) },
+    env_scripts(Scripts),
+    emit_residual_js(Cont),
+    [end(body)],
+    [end].
 
 % JS code for residual continuation
 emit_residual_js(Cont) -->
-	% TODO: use residual json instead!
-	% TODO: use actmod_http:encode_response instead
-	{ Cont = ['fibers_blt.yield_residue'(jscmd(JSCmd))] },
-	!,
-	{ jscmd_to_js(JSCmd, JS, []) },
-	env_script_src(JS).
+    % TODO: use residual json instead!
+    % TODO: use actmod_http:encode_response instead
+    { Cont = ['fibers_blt.yield_residue'(jscmd(JSCmd))] },
+    !,
+    { jscmd_to_js(JSCmd, JS, []) },
+    env_script_src(JS).
 emit_residual_js(Cont) -->
-	{ Cont = [] -> true 
-	; display(user_error, bug_cont_residual_ignored(Cont)), nl(user_error)
-	}.
+    { Cont = [] -> true 
+    ; display(user_error, bug_cont_residual_ignored(Cont)), nl(user_error)
+    }.
 
 % ---------------------------------------------------------------------------
 
 :- impl(layout, none).
 
 (none as layout).render_main(R) :-
-	R = [~env_read(output_html)].
+    R = [~env_read(output_html)].
 
 (none as layout).css_links([]).
 
@@ -201,28 +201,28 @@ layout_theme(bootstrap_layout(Theme,_)) := Theme.
 
 % Render
 (bootstrap_layout(_, Main) as layout).render_main(A) :-
-	render_main(Main, A, []).
+    render_main(Main, A, []).
 
 (bootstrap_layout(Theme, Main) as layout).css_links(Xs) :-
-	Layout = bootstrap_layout(Theme, Main),
-	findall(X, css_link(Layout, X), Xs).
+    Layout = bootstrap_layout(Theme, Main),
+    findall(X, css_link(Layout, X), Xs).
 
 (bootstrap_layout(_,_) as layout).js_scripts(Xs) :-
-	( use_bootstrap -> Xs = ['jquery.min.js', 'js/bootstrap.min.js']
-	; Xs = []
-	).
+    ( use_bootstrap -> Xs = ['jquery.min.js', 'js/bootstrap.min.js']
+    ; Xs = []
+    ).
 
 render_main(nav(Brand, Navtabs)) -->
-	{ t_current_fact(~apply1(navtab, Navtab)) },
-	render_navbar(Brand, Navtabs),
-	render_navtab(Navtab).
+    { t_current_fact(~apply1(navtab, Navtab)) },
+    render_navbar(Brand, Navtabs),
+    render_navtab(Navtab).
 render_main(singletab(Navtab)) -->
-	render_navtab(Navtab).
+    render_navtab(Navtab).
 
 % Render a navtab
 render_navtab(Navtab) -->
-	{ (Navtab as navtab).render(R) },
-	[env(div, [class='container-fluid', role='main'], R)].
+    { (Navtab as navtab).render(R) },
+    [env(div, [class='container-fluid', role='main'], R)].
 
 % ---------------------------------------------------------------------------
 
@@ -230,21 +230,21 @@ render_navtab(Navtab) -->
 
 % 'ui_pred.depends'([navtab/1])
 render_navbar(Brand, Navtabs) -->
-	% Fixed navbar for selecting the current navtab
-	{ t_current_fact(~apply1(navtab, CurrNavtab)) -> true ; fail },
-	{ navtab_queries(Navtabs, CurrNavtab, Queries, []) },
-	wui_elem(navbar(Brand, Queries)).
+    % Fixed navbar for selecting the current navtab
+    { t_current_fact(~apply1(navtab, CurrNavtab)) -> true ; fail },
+    { navtab_queries(Navtabs, CurrNavtab, Queries, []) },
+    wui_elem(navbar(Brand, Queries)).
 
 navtab_queries([], _CurrNavtab) --> [].
 navtab_queries([O|Os], CurrNavtab) -->
-	navtab_query(O, CurrNavtab),
-	navtab_queries(Os, CurrNavtab).
+    navtab_query(O, CurrNavtab),
+    navtab_queries(Os, CurrNavtab).
 
 navtab_query(Navtab, CurrNavtab) -->
-	{ Navtab = CurrNavtab -> Atts = [active|Atts2] ; Atts = Atts2 },
-	{ Atts2 = [] }, % TODO: add .atts?
-	{ (Navtab as navtab).title(TitleR) },
-	[wui_item(~wui_redraw(~fiberSusp(do_set_fact(navtab(Navtab)))), Atts, TitleR)].
+    { Navtab = CurrNavtab -> Atts = [active|Atts2] ; Atts = Atts2 },
+    { Atts2 = [] }, % TODO: add .atts?
+    { (Navtab as navtab).title(TitleR) },
+    [wui_item(~wui_redraw(~fiberSusp(do_set_fact(navtab(Navtab)))), Atts, TitleR)].
 
 % ---------------------------------------------------------------------------
 % Bootstrap themes
@@ -256,10 +256,10 @@ use_bootstrap.
 
 % Path to bootstrap HTML framework
 'httpserv.file_path'('', F) :-
-	path_concat(~third_party_custom_path(bower_components), 'bootstrap/dist', F).
+    path_concat(~third_party_custom_path(bower_components), 'bootstrap/dist', F).
 % (jquery is needed for bootstrap dropdown menus)
 'httpserv.file_path'('', F) :-
-	path_concat(~third_party_custom_path(bower_components), 'jquery/dist', F).
+    path_concat(~third_party_custom_path(bower_components), 'jquery/dist', F).
 
 :- export(bootstrap_theme/1).
 % TODO: ad-hoc (see bootswatch)
@@ -290,14 +290,14 @@ bootstrap_theme(yeti).
 % CSS for (bootstrap) themes
 
 theme_dir(Theme, Dir) :-
-	bootstrap_theme(Theme),
-	atom_concat(Theme, '-theme', Dir).
+    bootstrap_theme(Theme),
+    atom_concat(Theme, '-theme', Dir).
 
 'httpserv.file_path'(Dir, F) :-
-	theme_dir(Theme, ThemeDir),
-	atom_concat('/', ThemeDir, Dir),
-	path_concat(~third_party_custom_path(bower_components), 'bootswatch', D),
-	path_concat(D, Theme, F).
+    theme_dir(Theme, ThemeDir),
+    atom_concat('/', ThemeDir, Dir),
+    path_concat(~third_party_custom_path(bower_components), 'bootswatch', D),
+    path_concat(D, Theme, F).
 
 css_link(_) := 'css/lpdoc.css'. % LPdoc % TODO: make it optional
 css_link(Layout) := ~theme_css_link(~layout_theme(Layout)) :- use_bootstrap.
@@ -307,14 +307,14 @@ common_css_link := 'css/theme.css'. % Custom style
 common_css_link := 'css/ciao-htmlfontify.css'. % Custom style for emacs htmlfontify
 
 theme_css_link(default) := R :- !,
-	R = 'css/bootstrap.min.css'.
+    R = 'css/bootstrap.min.css'.
 theme_css_link(extended) := R :- !,
-	( R = 'css/bootstrap.min.css'
-	; R = 'css/bootstrap-theme.min.css'
-	).
+    ( R = 'css/bootstrap.min.css'
+    ; R = 'css/bootstrap-theme.min.css'
+    ).
 theme_css_link(Theme) := R :-
-	theme_dir(Theme, ThemeDir),
-	R = ~path_concat(ThemeDir, 'bootstrap.min.css').
+    theme_dir(Theme, ThemeDir),
+    R = ~path_concat(ThemeDir, 'bootstrap.min.css').
 
 %% css('/bower_components/source-sans-pro/source-sans-pro.css').
 %% css('/bower_components/source-code-pro/source-code-pro.css').
@@ -334,11 +334,11 @@ htmlurl := '/'.
 :- pred prefix_htmlurl(Path, Path2) :: atm * atm
    # "Prefix @var{Path} with value of @tt{htmlurl} (if needed)".
 prefix_htmlurl(Path) := Path2 :-
-	HtmlURL = ~htmlurl,
-	!,
-	( HtmlURL = '' -> Path2 = Path
-	; path_concat(HtmlURL, Path, Path2)
-	).
+    HtmlURL = ~htmlurl,
+    !,
+    ( HtmlURL = '' -> Path2 = Path
+    ; path_concat(HtmlURL, Path, Path2)
+    ).
 prefix_htmlurl(Path) := Path. % no htmlurl value
 
 % ---------------------------------------------------------------------------
@@ -353,19 +353,19 @@ env_scripts([X|Xs]) --> env_script(X), env_scripts(Xs).
 
 :- export(env_script/3).
 env_script(Src) -->
-	{ prefix_htmlurl(Src, Src2) },
-	[env(script, [src=Src2], [])].
+    { prefix_htmlurl(Src, Src2) },
+    [env(script, [src=Src2], [])].
 
 :- export(env_script_src/3).
 env_script_src(Src) -->
-	[begin(script, [])],
-	emit(Src),
-        [end(script)].
+    [begin(script, [])],
+    emit(Src),
+    [end(script)].
 
 :- export(env_link/3).
 env_link(Src) -->
-	{ prefix_htmlurl(Src, Src2) },
-	[elem(link, [rel='stylesheet', href=Src2])].
+    { prefix_htmlurl(Src, Src2) },
+    [elem(link, [rel='stylesheet', href=Src2])].
 
 % ---------------------------------------------------------------------------
 
@@ -373,17 +373,17 @@ env_link(Src) -->
 
 :- export(emit_iframe/3).
 emit_iframe(File) -->
-	{ prefix_htmlurl(File, File2) },
-        [env(div, [style='position: relative; width: 100%; height: 0px; padding-bottom: 60%;'], [
-           env(iframe, [style='position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border: 1px solid #eee',
-		        src=File2], [])
-         ])].
+    { prefix_htmlurl(File, File2) },
+    [env(div, [style='position: relative; width: 100%; height: 0px; padding-bottom: 60%;'], [
+       env(iframe, [style='position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; border: 1px solid #eee',
+                    src=File2], [])
+     ])].
 
 :- export(emit_svg/3).
 emit_svg(File) -->
-	{ prefix_htmlurl(File, File2) },
-	% TODO: add HTML 'id' if needed
-        [env(object, [data=File2, type='image/svg+xml', style='max-width: 100%'], [])].
+    { prefix_htmlurl(File, File2) },
+    % TODO: add HTML 'id' if needed
+    [env(object, [data=File2, type='image/svg+xml', style='max-width: 100%'], [])].
 
 % ---------------------------------------------------------------------------
 
@@ -397,23 +397,23 @@ emit([X|Xs]) --> [X], emit(Xs).
 :- export(wui_elem/3).
 % wui_elem(+,+,?)
 wui_elem(dropdown(Text, Items)) --> !,
-	emit_dropdown(Text, Items).
+    emit_dropdown(Text, Items).
 wui_elem(nav(Items)) --> !,
-	emit_nav(Items).
+    emit_nav(Items).
 wui_elem(navbar(Brand, Items)) --> !,
-	emit_navbar(Brand, Items).
+    emit_navbar(Brand, Items).
 wui_elem(breadcrumb(Items)) --> !,
-	emit_breadcrumb(Items).
+    emit_breadcrumb(Items).
 wui_elem(button(PA, Style, Text)) --> !,
-	emit_button(PA, Style, Text).
+    emit_button(PA, Style, Text).
 wui_elem(link(PA, Atts, Text)) --> !,
-	[~fiberSusp_to_link(PA, Atts, Text)].
+    [~fiberSusp_to_link(PA, Atts, Text)].
 
 % ---------------------------------------------------------------------------
 
 emit_button(PA, Style, Text) -->
-	{ button_style(Style, HtmlAtts) },
-	[~fiberSusp_to_link(PA, HtmlAtts, Text)].
+    { button_style(Style, HtmlAtts) },
+    [~fiberSusp_to_link(PA, HtmlAtts, Text)].
 
 button_style(default, [role='button', class='btn btn-xs btn-default']).
 button_style(primary, [role='button', class='btn btn-xs btn-primary']).
@@ -429,24 +429,24 @@ fiberSusp_to_link(PA, Atts, Text) := ~jscmd_to_link(~'fiberSusp->jscmd'(PA), Att
 % ---------------------------------------------------------------------------
 
 emit_dropdown(Text, Items) -->
-	[begin(div, [class='btn-group'])],
-	{ append(Text, [' ', env(span, [class='caret'], [])], Text2) },
-	[env(button, [type='button', class='btn btn-default dropdown-toggle', 'data-toggle'='dropdown'], Text2)],
-	[begin(ul, [class='dropdown-menu', role='menu'])],
-	emit_dropdown_items(Items),
-	[end(ul)],
-	[end(div)].
+    [begin(div, [class='btn-group'])],
+    { append(Text, [' ', env(span, [class='caret'], [])], Text2) },
+    [env(button, [type='button', class='btn btn-default dropdown-toggle', 'data-toggle'='dropdown'], Text2)],
+    [begin(ul, [class='dropdown-menu', role='menu'])],
+    emit_dropdown_items(Items),
+    [end(ul)],
+    [end(div)].
 
 emit_dropdown_items([]) --> [].
 emit_dropdown_items([X|Xs]) -->
-	emit_dropdown_item(X),
-	emit_dropdown_items(Xs).
+    emit_dropdown_item(X),
+    emit_dropdown_items(Xs).
 
 emit_dropdown_item(--) --> !,
-	[env(li, [class='divider'], [])].
+    [env(li, [class='divider'], [])].
 emit_dropdown_item(wui_item(PA, Atts, Text)) -->
-	{ Xs = ~fiberSusp_to_link(PA, Atts, Text) },
-	[env(li, [], Xs)].
+    { Xs = ~fiberSusp_to_link(PA, Atts, Text) },
+    [env(li, [], Xs)].
 
 % ---------------------------------------------------------------------------
 
@@ -455,7 +455,7 @@ emit_dropdown_item(wui_item(PA, Atts, Text)) -->
 :- export(emit_option_dropdown/5).
 :- meta_predicate emit_option_dropdown(?,?,?,?,?).
 emit_option_dropdown(F, Range, Text) -->
-	emit_option_dropdown(F, Range, Text, default_term_render).
+    emit_option_dropdown(F, Range, Text, default_term_render).
 
 :- export(emit_option_dropdown/6).
 :- meta_predicate emit_option_dropdown(?,?,?,pred(2),?,?).
@@ -464,104 +464,104 @@ emit_option_dropdown(F, Range, Text) -->
 %   list Range, rendered by predicate Render.
 
 emit_option_dropdown(F, Range, Text, Render) -->
-	{ CurrFact = ~apply1(F, CurrX) },
-	{ ( t_current_fact(CurrFact) ->
-	      MaybeCurrX = yes(CurrX),
-	      Render(CurrX, CurrText)
-	  ; MaybeCurrX = no,
-	    CurrText = '(select)'
-	  ),
-	  FullText = [Text, ': ', CurrText]
-	},
-	{ option_items(Range, F, MaybeCurrX, default_term_render, Items, []) },
-        wui_elem(dropdown(FullText, Items)).
+    { CurrFact = ~apply1(F, CurrX) },
+    { ( t_current_fact(CurrFact) ->
+          MaybeCurrX = yes(CurrX),
+          Render(CurrX, CurrText)
+      ; MaybeCurrX = no,
+        CurrText = '(select)'
+      ),
+      FullText = [Text, ': ', CurrText]
+    },
+    { option_items(Range, F, MaybeCurrX, default_term_render, Items, []) },
+    wui_elem(dropdown(FullText, Items)).
 
 :- meta_predicate option_items(?,?,?,pred(2),?,?).
 option_items([], _F, _MaybeCurrX, _RenderOpt) --> [].
 option_items([X|Xs], F, MaybeCurrX, RenderOpt) -->
-	option_item(X, F, MaybeCurrX, RenderOpt),
-	option_items(Xs, F, MaybeCurrX, RenderOpt).
+    option_item(X, F, MaybeCurrX, RenderOpt),
+    option_items(Xs, F, MaybeCurrX, RenderOpt).
 
 :- meta_predicate option_item(?,?,?,pred(2),?,?).
 option_item(X, F, MaybeCurrX, RenderOpt) -->
-	{ MaybeCurrX = yes(X) -> Atts = [active] ; Atts = [] },
-	{ Fact = ~apply1(F, X) },
-	{ RenderOpt(X, Text) },
-	[wui_item(~wui_redraw(~fiberSusp(do_set_fact(Fact))), [], Text)].
+    { MaybeCurrX = yes(X) -> Atts = [active] ; Atts = [] },
+    { Fact = ~apply1(F, X) },
+    { RenderOpt(X, Text) },
+    [wui_item(~wui_redraw(~fiberSusp(do_set_fact(Fact))), [], Text)].
 
 :- export(default_term_render/2).
 default_term_render(X, Text) :-
-	term_to_str(X, Str),
-	Text = [Str].
+    term_to_str(X, Str),
+    Text = [Str].
 
 % ---------------------------------------------------------------------------
 
 emit_nav(Items) -->
-	[begin(ul, [class='nav nav-tabs'])],
-	nav_items(Items),
-        [end(ul)].
+    [begin(ul, [class='nav nav-tabs'])],
+    nav_items(Items),
+    [end(ul)].
 
 nav_items([]) --> [].
 nav_items([X|Xs]) -->
-	nav_item(X),
-	nav_items(Xs).
+    nav_item(X),
+    nav_items(Xs).
 
 nav_item(wui_item(PA, Atts, Text)) -->
-	{ Xs = ~fiberSusp_to_link(PA, Atts, Text) },
-	!,
-	{ member(active, Atts) -> Atts2 = [class='active'|Atts3] ; Atts2 = Atts3 },
-	{ Atts3 = [role='presentation'] },
-	[env(li, Atts2, Xs)].
+    { Xs = ~fiberSusp_to_link(PA, Atts, Text) },
+    !,
+    { member(active, Atts) -> Atts2 = [class='active'|Atts3] ; Atts2 = Atts3 },
+    { Atts3 = [role='presentation'] },
+    [env(li, Atts2, Xs)].
 nav_item(_Query) --> [].
 
 % ---------------------------------------------------------------------------
 
 emit_navbar(Brand, Items) -->
-	[begin(div, [class='navbar navbar-default navbar-fixed-top',
-	             role='navigation'])],
-	[begin(div, [class='container'])],
-	navbar_header(Brand),
-	navbar_contents(Items),
-        [end(div)],
-        [end(div)].
+    [begin(div, [class='navbar navbar-default navbar-fixed-top',
+                 role='navigation'])],
+    [begin(div, [class='container'])],
+    navbar_header(Brand),
+    navbar_contents(Items),
+    [end(div)],
+    [end(div)].
 
 navbar_header(Brand) -->
-	[begin(div, [class='navbar-header'])],
-	[begin(button, [type='button',
-	                class='navbar-toggle collapsed',
-			'data-toggle'='collapse',
-			'data-target'='.navbar-collapse']),
-	   env(span, [class='sr-only'], ['Toggle navigation']),
-	   env(span, [class='icon-var'], []),
-	   env(span, [class='icon-var'], []),
-	   env(span, [class='icon-var'], []),
-	 end(button)],
-	[env(a, [class='navbar-brand', href='#'], Brand)],
-	[end(div)].
+    [begin(div, [class='navbar-header'])],
+    [begin(button, [type='button',
+                    class='navbar-toggle collapsed',
+                    'data-toggle'='collapse',
+                    'data-target'='.navbar-collapse']),
+       env(span, [class='sr-only'], ['Toggle navigation']),
+       env(span, [class='icon-var'], []),
+       env(span, [class='icon-var'], []),
+       env(span, [class='icon-var'], []),
+     end(button)],
+    [env(a, [class='navbar-brand', href='#'], Brand)],
+    [end(div)].
 
 navbar_contents(Items) -->
-	[begin(div, [class='navbar-collapse collapse'])],
-	[begin(ul, [class='nav navbar-nav'])],
-	emit_navbar_items(Items, leftnav),
-	[end(ul)],
-	[begin(ul, [class='nav navbar-nav navbar-right'])],
-	emit_navbar_items(Items, rightnav),
-	[end(ul)],
-	[end(div)]. % /.nav-collapse
+    [begin(div, [class='navbar-collapse collapse'])],
+    [begin(ul, [class='nav navbar-nav'])],
+    emit_navbar_items(Items, leftnav),
+    [end(ul)],
+    [begin(ul, [class='nav navbar-nav navbar-right'])],
+    emit_navbar_items(Items, rightnav),
+    [end(ul)],
+    [end(div)]. % /.nav-collapse
 
 % TODO: extend to allow dropdown here?
 emit_navbar_items([], _Pos) --> [].
 emit_navbar_items([X|Xs], Pos) -->
-	emit_navbar_item(X, Pos),
-	emit_navbar_items(Xs, Pos).
+    emit_navbar_item(X, Pos),
+    emit_navbar_items(Xs, Pos).
 
 emit_navbar_item(wui_item(PA, Atts, Text), Pos) -->
-	{ Xs = ~fiberSusp_to_link(PA, Atts, Text) },
-	{ member(rightnav, Atts) -> Pos2 = rightnav ; Pos2 = leftnav },
-	{ Pos = Pos2 },
-	!,
-	{ member(active, Atts) -> Atts2 = [class='active'] ; Atts2 = [] },
-	[env(li, Atts2, Xs)].
+    { Xs = ~fiberSusp_to_link(PA, Atts, Text) },
+    { member(rightnav, Atts) -> Pos2 = rightnav ; Pos2 = leftnav },
+    { Pos = Pos2 },
+    !,
+    { member(active, Atts) -> Atts2 = [class='active'] ; Atts2 = [] },
+    [env(li, Atts2, Xs)].
 emit_navbar_item(_Query, _Pos) --> [].
 
 %                begin(li, [class='dropdown']),
@@ -580,20 +580,20 @@ emit_navbar_item(_Query, _Pos) --> [].
 % ---------------------------------------------------------------------------
 
 emit_breadcrumb(Items) -->
-	[begin(ol, [class='breadcrumb'])],
-	emit_breadcrumb_items(Items),
-        [end(ol)].
+    [begin(ol, [class='breadcrumb'])],
+    emit_breadcrumb_items(Items),
+    [end(ol)].
 
 emit_breadcrumb_items([]) --> [].
 emit_breadcrumb_items([X|Xs]) -->
-	emit_breadcrumb_item(X),
-	emit_breadcrumb_items(Xs).
+    emit_breadcrumb_item(X),
+    emit_breadcrumb_items(Xs).
 
 emit_breadcrumb_item(wui_item(PA, Atts, Text)) -->
-	{ Xs = ~fiberSusp_to_link(PA, Atts, Text) },
-	!,
-	{ member(active, Atts) -> Atts2 = [class='active'] ; Atts2 = [] },
-	[env(li, Atts2, Xs)].
+    { Xs = ~fiberSusp_to_link(PA, Atts, Text) },
+    !,
+    { member(active, Atts) -> Atts2 = [class='active'] ; Atts2 = [] },
+    [env(li, Atts2, Xs)].
 emit_breadcrumb_item(_Query) --> [].
 
 % ---------------------------------------------------------------------------
@@ -605,45 +605,45 @@ emit_breadcrumb_item(_Query) --> [].
 % TODO: add window.open?
 
 jscmd_to_js(set_timeout(Then, Timeout)) --> !,
-	"setTimeout(function() { ",
-	jscmd_to_js(Then),
-	"}, ", 
-	{ number_codes(Timeout, TimeoutCs) },
-	emit(TimeoutCs),
-	")".
+    "setTimeout(function() { ",
+    jscmd_to_js(Then),
+    "}, ", 
+    { number_codes(Timeout, TimeoutCs) },
+    emit(TimeoutCs),
+    ")".
 %
 % Load HTML contents from specified location (HRef), add previous
 % location to history.
 jscmd_to_js(push_window_location(HRef)) --> !,
-	"window.location = \'",
-	emit(HRef),
-	"\');".
+    "window.location = \'",
+    emit(HRef),
+    "\');".
 %
 % Like set_window_location, but it does not add entries to history.
 % TODO: back button still seems working... hmmm
 jscmd_to_js(replace_window_location(HRef)) --> !,
-	"window.location.replace(\'",
-	emit(HRef),
-	"\');".
+    "window.location.replace(\'",
+    emit(HRef),
+    "\');".
 % Query HRef asynchronously
 % TODO: merge with ciao-actmod.js model
 jscmd_to_js(rpc_GET(HRef)) --> !,
-	"var xhr = new XMLHttpRequest();",
-	"xhr.open('GET', ",
-	"\'", emit(HRef), "\'",
-	", true",
-	");",
-	"xhr.onload = function(e) {};",
-	"xhr.send(null);".
+    "var xhr = new XMLHttpRequest();",
+    "xhr.open('GET', ",
+    "\'", emit(HRef), "\'",
+    ", true",
+    ");",
+    "xhr.onload = function(e) {};",
+    "xhr.send(null);".
 
 % Obtain a <a></a> that invokes the given JSCmd on click
 jscmd_to_link(JSCmd, HtmlAtts, Body, R) :- JSCmd = push_window_location(HRef), !,
-	% Special case which not need JS
-	R = env(a, [href=HRef|HtmlAtts], Body).
+    % Special case which not need JS
+    R = env(a, [href=HRef|HtmlAtts], Body).
 jscmd_to_link(JSCmd, HtmlAtts, Body, R) :-
-	% (otherwise it needs JS)
-	jscmd_to_js(JSCmd, JS, []),
-	R = env(a, [href="javascript:void(0)", onclick=JS|HtmlAtts], Body).
+    % (otherwise it needs JS)
+    jscmd_to_js(JSCmd, JS, []),
+    R = env(a, [href="javascript:void(0)", onclick=JS|HtmlAtts], Body).
 
 % ---------------------------------------------------------------------------
 % Compile '$fiberSusp' into jscmd
@@ -651,17 +651,17 @@ jscmd_to_link(JSCmd, HtmlAtts, Body, R) :-
 % TODO: where should I move this?
 
 'fiberSusp->jscmd'('$fiberSusp'(FiberData, 'wui_html.redraw'(G))) := JSCmd :- !,
-	HRef = ~'fiberSusp->query_str'('$fiberSusp'(FiberData, 'wui_html.dumpHTML'(G))),
-	JSCmd = push_window_location(HRef).
+    HRef = ~'fiberSusp->query_str'('$fiberSusp'(FiberData, 'wui_html.dumpHTML'(G))),
+    JSCmd = push_window_location(HRef).
 'fiberSusp->jscmd'('$fiberSusp'(FiberData, 'wui_html.redraw_nb'(G))) := JSCmd :- !,
-	HRef = ~'fiberSusp->query_str'('$fiberSusp'(FiberData, 'wui_html.dumpHTML'(G))),
-	JSCmd = replace_window_location(HRef).
+    HRef = ~'fiberSusp->query_str'('$fiberSusp'(FiberData, 'wui_html.dumpHTML'(G))),
+    JSCmd = replace_window_location(HRef).
 'fiberSusp->jscmd'('$fiberSusp'(_, 'wui_html.push_window_location'(HRef))) := JSCmd :- !,
-	% TODO: assume that FiberData corresponds to the current actI here
-	JSCmd = push_window_location(HRef).
+    % TODO: assume that FiberData corresponds to the current actI here
+    JSCmd = push_window_location(HRef).
 'fiberSusp->jscmd'(PA) := JSCmd :- !,
-	HRef = ~'fiberSusp->query_str'(PA),
-	JSCmd = rpc_GET(HRef).
+    HRef = ~'fiberSusp->query_str'(PA),
+    JSCmd = rpc_GET(HRef).
 
 % ---------------------------------------------------------------------------
 
@@ -672,7 +672,7 @@ jscmd_to_link(JSCmd, HtmlAtts, Body, R) :-
 
 :- export(term_to_str/2).
 term_to_str(X, Str) :-
-	format_to_string("~q", [X], Str).
+    format_to_string("~q", [X], Str).
 
 % ---------------------------------------------------------------------------
 
@@ -681,13 +681,13 @@ term_to_str(X, Str) :-
 :- export(glyphicon_env/2).
 % A glyphicon
 glyphicon_env(Name) := R :-
-	atom_concat('glyphicon glyphicon-', Name, Class),
-	R = env(span, [class=Class], []).
+    atom_concat('glyphicon glyphicon-', Name, Class),
+    R = env(span, [class=Class], []).
 
 :- export(label_env/3).
 % Kind one of 'default', 'primary', 'success', 'info', 'danger', 'warning'
 label_env(Kind, Text) := [env(span, [class=Class], [Text])] :-
-	atom_concat('label label-', Kind, Class).
+    atom_concat('label label-', Kind, Class).
 
 % ---------------------------------------------------------------------------
 
@@ -711,77 +711,77 @@ lang_mode('css',        'mode/css/css.js', 'text/css').
 lang_mode('sh',         'mode/shell/shell.js', 'text/sh').
 
 'httpserv.file_path'('', F) :-
-	path_concat(~third_party_custom_path(bower_components), 'codemirror', F).
+    path_concat(~third_party_custom_path(bower_components), 'codemirror', F).
 
 :- export(emit_builtin_edit/4).
 emit_builtin_edit(Lang, Path) -->
-	{ file_to_string(Path, Content) },
-	{ Lang = text ->
-	    ModeMIME = ''
-	; lang_mode(Lang, ModeScript, ModeMIME),
-	  % TODO: make it depend on mode
-	  ModeStyle = 'theme/ciao-light.css',
-	  ModeTheme = 'ciao-light'
-	},
-	%
-	env_link('css/ciao-codemirror.css'),
-	%
-	env_link('lib/codemirror.css'),
-	env_link('addon/dialog/dialog.css'),
-	env_script('lib/codemirror.js'),
-	%
-	( { Lang = text } ->
-	    []
-	; env_script(ModeScript),
-	  env_link(ModeStyle)
-	),
-	%
-	env_script('keymap/emacs.js'),
-	env_script('addon/edit/matchbrackets.js'),
-	env_script('addon/comment/comment.js'),
-	env_script('addon/dialog/dialog.js'),
-	env_script('addon/search/searchcursor.js'),
-	env_script('addon/search/search.js'),
-	[env(style, [type='text/css'], [
-	  '.CodeMirror {',
-%	  'height: 100%;',' ',
-%	  'border-top: 1px solid #eee;',' ',
-%	  'border-bottom: 1px solid #eee;',
-	  'border: 1px solid #eee;',
-	  '}'
-        ])],
-	[begin(form)],
-	[begin(textarea, [id='code', name='code'])],
-	[Content],
-	[end(textarea)],
-	[end(form)],
-	{ setup_code_mirror(ModeMIME, ModeTheme, Script, []) },
-	env_script_src(Script).
+    { file_to_string(Path, Content) },
+    { Lang = text ->
+        ModeMIME = ''
+    ; lang_mode(Lang, ModeScript, ModeMIME),
+      % TODO: make it depend on mode
+      ModeStyle = 'theme/ciao-light.css',
+      ModeTheme = 'ciao-light'
+    },
+    %
+    env_link('css/ciao-codemirror.css'),
+    %
+    env_link('lib/codemirror.css'),
+    env_link('addon/dialog/dialog.css'),
+    env_script('lib/codemirror.js'),
+    %
+    ( { Lang = text } ->
+        []
+    ; env_script(ModeScript),
+      env_link(ModeStyle)
+    ),
+    %
+    env_script('keymap/emacs.js'),
+    env_script('addon/edit/matchbrackets.js'),
+    env_script('addon/comment/comment.js'),
+    env_script('addon/dialog/dialog.js'),
+    env_script('addon/search/searchcursor.js'),
+    env_script('addon/search/search.js'),
+    [env(style, [type='text/css'], [
+      '.CodeMirror {',
+%         'height: 100%;',' ',
+%         'border-top: 1px solid #eee;',' ',
+%         'border-bottom: 1px solid #eee;',
+      'border: 1px solid #eee;',
+      '}'
+    ])],
+    [begin(form)],
+    [begin(textarea, [id='code', name='code'])],
+    [Content],
+    [end(textarea)],
+    [end(form)],
+    { setup_code_mirror(ModeMIME, ModeTheme, Script, []) },
+    env_script_src(Script).
 
 setup_code_mirror(ModeMIME, ModeTheme) -->
-	['CodeMirror.commands.save = function() {',
-	 '  var elt = editor.getWrapperElement();',
-	 '  elt.style.background = "#def";',
-	 '  setTimeout(function() { elt.style.background = ""; }, 300);',
-	 '};'],
-	['var editor = CodeMirror.fromTextArea(document.getElementById("code"), {',
-	 '  lineNumbers: true,',
-	 '  matchBrackets: true,',
-	 '  extraKeys: { "Tab": "indentAuto" },'],
-	( { ModeMIME = '' } ->
-	    []
-	; ['  mode: "', ModeMIME, '",']
-	),
-	['  keyMap: "emacs",',
-	 '  theme: "', ModeTheme, '",',
-	 '  tabSize: 8',
-	 '});'],
-	['editor.setSize("100%","80%");'].
+    ['CodeMirror.commands.save = function() {',
+     '  var elt = editor.getWrapperElement();',
+     '  elt.style.background = "#def";',
+     '  setTimeout(function() { elt.style.background = ""; }, 300);',
+     '};'],
+    ['var editor = CodeMirror.fromTextArea(document.getElementById("code"), {',
+     '  lineNumbers: true,',
+     '  matchBrackets: true,',
+     '  extraKeys: { "Tab": "indentAuto" },'],
+    ( { ModeMIME = '' } ->
+        []
+    ; ['  mode: "', ModeMIME, '",']
+    ),
+    ['  keyMap: "emacs",',
+     '  theme: "', ModeTheme, '",',
+     '  tabSize: 8',
+     '});'],
+    ['editor.setSize("100%","80%");'].
 
 % ---------------------------------------------------------------------------
 
 % error_html(Xs) -->
-% 	[begin(div, [class='alert alert-danger', role='alert'])],
-% 	emit(Xs),
-% 	[end(div)].
+%       [begin(div, [class='alert alert-danger', role='alert'])],
+%       emit(Xs),
+%       [end(div)].
 
