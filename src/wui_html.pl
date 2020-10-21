@@ -256,10 +256,10 @@ use_bootstrap.
 
 % Path to bootstrap HTML framework
 'httpserv.file_path'('', F) :-
-    path_concat(~third_party_custom_path(bower_components), 'bootstrap/dist', F).
+    path_concat(~third_party_custom_path(node_modules), 'bootstrap/dist', F).
 % (jquery is needed for bootstrap dropdown menus)
 'httpserv.file_path'('', F) :-
-    path_concat(~third_party_custom_path(bower_components), 'jquery/dist', F).
+    path_concat(~third_party_custom_path(node_modules), 'jquery/dist', F).
 
 :- export(bootstrap_theme/1).
 % TODO: ad-hoc (see bootswatch)
@@ -296,7 +296,7 @@ theme_dir(Theme, Dir) :-
 'httpserv.file_path'(Dir, F) :-
     theme_dir(Theme, ThemeDir),
     atom_concat('/', ThemeDir, Dir),
-    path_concat(~third_party_custom_path(bower_components), 'bootswatch', D),
+    path_concat(~third_party_custom_path(node_modules), 'bootswatch/dist', D),
     path_concat(D, Theme, F).
 
 css_link(_) := 'css/lpdoc.css'. % LPdoc % TODO: make it optional
@@ -316,8 +316,8 @@ theme_css_link(Theme) := R :-
     theme_dir(Theme, ThemeDir),
     R = ~path_concat(ThemeDir, 'bootstrap.min.css').
 
-%% css('/bower_components/source-sans-pro/source-sans-pro.css').
-%% css('/bower_components/source-code-pro/source-code-pro.css').
+%% css('/node_modules/source-sans-pro/source-sans-pro.css').
+%% css('/node_modules/source-code-pro/source-code-pro.css').
 %% css('/css/normalize.css').
 %% css('/css/ciao-playground.css').
 %% js_script('/js/split.min.js').
@@ -711,7 +711,7 @@ lang_mode('css',        'mode/css/css.js', 'text/css').
 lang_mode('sh',         'mode/shell/shell.js', 'text/sh').
 
 'httpserv.file_path'('', F) :-
-    path_concat(~third_party_custom_path(bower_components), 'codemirror', F).
+    path_concat(~third_party_custom_path(node_modules), 'codemirror', F).
 
 :- export(emit_builtin_edit/4).
 emit_builtin_edit(Lang, Path) -->
