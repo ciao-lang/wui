@@ -183,7 +183,7 @@ customize :- % A customized command
 
 :- suspendable(get_menu_and_show, [cached_step]).
 get_menu_and_show :-
-    menu_to_json(all, Items), % TODO: add 'javall' too
+    menu_to_json(all, Items), % TODO: add 'java_all' too
     show_modal([
       html = string("Select flag values for a custom command:"),
       menu = Items,
