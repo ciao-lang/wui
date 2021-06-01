@@ -192,35 +192,59 @@ emit_residual_js(Cont) -->
 
 % ---------------------------------------------------------------------------
 
+:- impl(layout, lpdoc_layout/1).
+
+% Render
+(lpdoc_layout(Main) as layout).render_main(A) :-
+    lpdoc_render_main(Main, A, []).
+
+(lpdoc_layout(_) as layout).css_links(Xs) :-
+    findall(X, common_css_link(X), Xs).
+
+(lpdoc_layout(_) as layout).js_scripts([]).
+
+lpdoc_render_main(singletab(Navtab)) -->
+    lpdoc_render_navtab(Navtab).
+
+% Render a navtab
+lpdoc_render_navtab(Navtab) -->
+    { (Navtab as navtab).render(R) },
+    [env(div, [class='lpdoc-page'], [
+        env(div, [class='lpdoc-main'], R)
+    ])].
+
+% ===========================================================================
+:- doc(section, "Bootstrap (CSS) Layout").
+
 :- impl(layout, bootstrap_layout/2).
 
 % TODO: bootstrap components documented at http://getbootstrap.com/components
 % TODO: customized styles: http://getbootstrap.com/customize/
 
-layout_theme(bootstrap_layout(Theme,_)) := Theme.
+bootstrap_layout_theme(bootstrap_layout(Theme,_)) := Theme.
 
 % Render
 (bootstrap_layout(_, Main) as layout).render_main(A) :-
-    render_main(Main, A, []).
+    bootstrap_render_main(Main, A, []).
 
 (bootstrap_layout(Theme, Main) as layout).css_links(Xs) :-
     Layout = bootstrap_layout(Theme, Main),
-    findall(X, css_link(Layout, X), Xs).
+    findall(X, bootstrap_css_link(Layout, X), Xs).
 
 (bootstrap_layout(_,_) as layout).js_scripts(Xs) :-
-    ( use_bootstrap -> Xs = ['jquery.min.js', 'js/bootstrap.min.js']
+    ( has_bootstrap -> Xs = ['jquery.min.js', 'js/bootstrap.min.js']
     ; Xs = []
     ).
 
-render_main(nav(Brand, Navtabs)) -->
+bootstrap_render_main(nav(Brand, Navtabs)) -->
     { t_current_fact(~apply1(navtab, Navtab)) },
-    render_navbar(Brand, Navtabs),
-    render_navtab(Navtab).
-render_main(singletab(Navtab)) -->
-    render_navtab(Navtab).
+    bootstrap_render_navbar(Brand, Navtabs),
+    bootstrap_render_navtab(Navtab).
+bootstrap_render_main(singletab(Navtab)) -->
+    bootstrap_render_navtab(Navtab).
 
 % Render a navtab
-render_navtab(Navtab) -->
+bootstrap_render_navtab(Navtab) -->
     { (Navtab as navtab).render(R) },
     [env(div, [class='container-fluid', role='main'], R)].
 
@@ -229,18 +253,18 @@ render_navtab(Navtab) -->
 % Navtab with rendering of a single element (specified by CurrNavtab)
 
 % 'ui_pred.depends'([navtab/1])
-render_navbar(Brand, Navtabs) -->
+bootstrap_render_navbar(Brand, Navtabs) -->
     % Fixed navbar for selecting the current navtab
     { t_current_fact(~apply1(navtab, CurrNavtab)) -> true ; fail },
-    { navtab_queries(Navtabs, CurrNavtab, Queries, []) },
+    { bootstrap_navtab_queries(Navtabs, CurrNavtab, Queries, []) },
     wui_elem(navbar(Brand, Queries)).
 
-navtab_queries([], _CurrNavtab) --> [].
-navtab_queries([O|Os], CurrNavtab) -->
-    navtab_query(O, CurrNavtab),
-    navtab_queries(Os, CurrNavtab).
+bootstrap_navtab_queries([], _CurrNavtab) --> [].
+bootstrap_navtab_queries([O|Os], CurrNavtab) -->
+    bootstrap_navtab_query(O, CurrNavtab),
+    bootstrap_navtab_queries(Os, CurrNavtab).
 
-navtab_query(Navtab, CurrNavtab) -->
+bootstrap_navtab_query(Navtab, CurrNavtab) -->
     { Navtab = CurrNavtab -> Atts = [active|Atts2] ; Atts = Atts2 },
     { Atts2 = [] }, % TODO: add .atts?
     { (Navtab as navtab).title(TitleR) },
@@ -249,8 +273,8 @@ navtab_query(Navtab, CurrNavtab) -->
 % ---------------------------------------------------------------------------
 % Bootstrap themes
 
-% use_bootstrap :- fail.
-use_bootstrap.
+% has_bootstrap :- fail.
+has_bootstrap.
 
 :- include(library(http/http_server_hooks)).
 
@@ -289,32 +313,31 @@ bootstrap_theme(yeti).
 % ---------------------------------------------------------------------------
 % CSS for (bootstrap) themes
 
-theme_dir(Theme, Dir) :-
+bootstrap_theme_dir(Theme, Dir) :-
     bootstrap_theme(Theme),
     atom_concat(Theme, '-theme', Dir).
 
 'httpserv.file_path'(Dir, F) :-
-    theme_dir(Theme, ThemeDir),
+    bootstrap_theme_dir(Theme, ThemeDir),
     atom_concat('/', ThemeDir, Dir),
     path_concat(~third_party_custom_path(node_modules), 'bootswatch/dist', D),
     path_concat(D, Theme, F).
 
-css_link(_) := 'css/lpdoc.css'. % LPdoc % TODO: make it optional
-css_link(Layout) := ~theme_css_link(~layout_theme(Layout)) :- use_bootstrap.
-css_link(_Layout) := ~common_css_link.
+bootstrap_css_link(Layout) := ~bootstrap_theme_css_link(~bootstrap_layout_theme(Layout)) :- has_bootstrap.
+bootstrap_css_link(_Layout) := 'css/theme.css'. % Custom style
+bootstrap_css_link(_Layout) := ~common_css_link.
 
-common_css_link := 'css/theme.css'. % Custom style
-common_css_link := 'css/ciao-htmlfontify.css'. % Custom style for emacs htmlfontify
-
-theme_css_link(default) := R :- !,
+bootstrap_theme_css_link(default) := R :- !,
     R = 'css/bootstrap.min.css'.
-theme_css_link(extended) := R :- !,
+bootstrap_theme_css_link(extended) := R :- !,
     ( R = 'css/bootstrap.min.css'
     ; R = 'css/bootstrap-theme.min.css'
     ).
-theme_css_link(Theme) := R :-
-    theme_dir(Theme, ThemeDir),
+bootstrap_theme_css_link(Theme) := R :-
+    bootstrap_theme_dir(Theme, ThemeDir),
     R = ~path_concat(ThemeDir, 'bootstrap.min.css').
+
+% ===========================================================================
 
 %% css('/node_modules/source-sans-pro/source-sans-pro.css').
 %% css('/node_modules/source-code-pro/source-code-pro.css').
@@ -325,6 +348,13 @@ theme_css_link(Theme) := R :-
 %% js_script('/js/ciao-actmod.js').
 %% js_script('/js/ciao-playground-ui.js').
 %% js_script('/js/ciao-playground-actmod.js').
+
+% ---------------------------------------------------------------------------
+% Some common CSS
+
+common_css_link := 'css/lpdoc.css'. % LPdoc % TODO: make it optional?
+common_css_link := 'css/website.css'. % (website extra) % TODO: make it optional?
+common_css_link := 'css/ciao-htmlfontify.css'. % Custom style for emacs htmlfontify
 
 % ---------------------------------------------------------------------------
 % TODO: duplicated (htmlurl/1 changes)

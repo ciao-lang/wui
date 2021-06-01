@@ -13,10 +13,10 @@ m_bundle_foreign_dep(wui, cmd, 'npm', 'NPM (http://www.npmjs.com)').
 %
 m_bundle_foreign_dep(wui, npm, 'codemirror', 'https://codemirror.net').
 %
-m_bundle_foreign_dep(wui, npm, '@popperjs/core', 'https://popper.js.org'). % TODO: requires for bootstrap
-m_bundle_foreign_dep(wui, npm, 'jquery', 'https://jquery.com'). % TODO: avoid this dep
-m_bundle_foreign_dep(wui, npm, 'bootstrap', 'http://getbootstrap.com'). % TODO: avoid this dep
-m_bundle_foreign_dep(wui, npm, 'bootswatch', 'http://bootswatch.com'). % TODO: avoid this dep
+% m_bundle_foreign_dep(wui, npm, '@popperjs/core', 'https://popper.js.org'). % TODO: requires for bootstrap
+% m_bundle_foreign_dep(wui, npm, 'jquery', 'https://jquery.com'). % TODO: avoid this dep
+% m_bundle_foreign_dep(wui, npm, 'bootstrap', 'http://getbootstrap.com'). % TODO: avoid this dep
+% m_bundle_foreign_dep(wui, npm, 'bootswatch', 'http://bootswatch.com'). % TODO: avoid this dep
 % Some web fonts
 m_bundle_foreign_dep(wui, npm, 'source-sans-pro', 'https://github.com/adobe-fonts/source-sans-pro').
 m_bundle_foreign_dep(wui, npm, 'source-code-pro', 'https://github.com/adobe-fonts/source-code-pro').
