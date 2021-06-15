@@ -3,10 +3,48 @@
 
 html {
     height: 100%;
+    /* override lpdoc setting */
+    overflow-y: hidden;
 }
 body {
     height: 100%;
     overflow: hidden;
+}
+
+:root {
+    --frame-border: #e2e2e2;
+    --cm-ciao-linenum: #ccc;
+    --cm-ciao-selected: #ccc;
+    --cm-ciao-comment: firebrick;
+    --cm-ciao-predname: blue;
+    --cm-ciao-neck: orangered;
+    --cm-ciao-mod-decl: navy;
+    --cm-ciao-pred-decl: navy;
+    --cm-ciao-status-check: navy;
+    --cm-ciao-status-true: forestgreen;
+    --cm-ciao-status-false: red;
+    --cm-ciao-status-trust: coral;
+    --cm-ciao-status-entry: brown;
+    --cm-ciao-status-checked: darkgreen;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --frame-border: #3a444b;
+        --cm-ciao-linenum: #4c5561;
+        --cm-ciao-selected: #4c5561;
+        --cm-ciao-comment: #6C7B8B; /*slategray4*/
+        --cm-ciao-predname: lightskyblue;
+        --cm-ciao-neck: orangered;
+        --cm-ciao-mod-decl: #9F79EE; /* mediumpurple2 */
+        --cm-ciao-pred-decl: dodgerblue; /* mediumpurple2 */
+        --cm-ciao-status-check: dodgerblue;
+        --cm-ciao-status-true: limegreen;
+        --cm-ciao-status-false: red;
+        --cm-ciao-status-trust: coral;
+        --cm-ciao-status-entry: #FF8C69; /* salmon1 */
+        --cm-ciao-status-checked: lightgreen;
+    }
 }
 
 /* --------------------------------------------------------------------------- */
@@ -19,68 +57,82 @@ body {
   height: calc(100vh - 0px);
 }*/
 .CodeMirror {
-    /* background: #ffffff; */
-    /* background: #ffffe8; */
-    background: #fff8dd;
-    /* font-family: "Go Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace; */
-    font-family: "Source Code Pro", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    color: var(--fg);
+    background: var(--codeblock-bg);
+    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
     font-size: 14px;
     height: 100%;
 }
-.CodeMirror-gutters {
-    background: #fff8dd; /* #fff1cc; */
+.CodeMirror-cursor {
+    color: var(--fg);
+    border-left-color: var(--fg);
+}
+.CodeMirror-gutters, .CodeMirror-gutter-filler {
+    background: var(--codeblock-bg);
     border: none;
 }
-.CodeMirror-linenumber {
-    color: #ccc;
+.CodeMirror-scrollbar-filler {
+    background: var(--bg);
 }
+.CodeMirror-linenumber {
+    color: var(--cm-ciao-linenum);
+}
+div.CodeMirror-selected { background: var(--cm-ciao-selected) !important; }
 body {
-    background: white;
-    /* font-family: "Go", Sans-Serif; */
-    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    font-family: -apple-system,Helvetica,Arial,sans-serif;
     font-size: 16px;
-    /* height: 100%; */
 }
 button, input, optgroup, select, textarea {
-    font-family: "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: -apple-system,Helvetica,Arial,sans-serif;
     font-size: 14px;
 }
 
 /* Specific for cm-ciao-mode.js CodeMirror mode */
 
 .cm-ciao-variable {
-    color: darkorange;
+    color: var(--var-fg);
+}
+.cm-s-default .cm-comment {
+    color: var(--cm-ciao-comment);
+}
+.cm-ciao-predname {
+    color: var(--cm-ciao-predname);
 }
 .cm-ciao-neck {
-    color: orangered;
+    color: var(--cm-ciao-neck);
     font-weight: 600;
 }
-.cm-ciao-decl {
-    color: navy;
+.cm-ciao-mod-decl {
+    color: var(--cm-ciao-mod-decl);
+    font-weight: 600;
+}
+.cm-ciao-pred-decl {
+    color: var(--cm-ciao-pred-decl);
     font-weight: 600;
 }
 .cm-ciao-status-check {
-    color: navy;
+    color: var(--cm-ciao-status-check);
     font-weight: 600;
 }
 .cm-ciao-status-true {
-    color: ForestGreen;
+    color: var(--cm-ciao-status-true);
     font-weight: 600;
 }
 .cm-ciao-status-false {
-    color: red;
+    color: var(--cm-ciao-status-false);
     font-weight: 600;
 }
 .cm-ciao-status-trust {
-    color: coral;
+    color: var(--cm-ciao-status-trust);
     font-weight: 600;
 }
 .cm-ciao-status-entry {
-    color: brown;
+    color: var(--cm-ciao-status-entry);
     font-weight: 600;
 }
 .cm-ciao-status-checked {
-    color: darkgreen;
+    color: var(--cm-ciao-status-checked);
     font-weight: 600;
 }
 
@@ -88,14 +140,14 @@ button, input, optgroup, select, textarea {
 /* UI elements: frames, buffers, menu items, toolbar buttons, etc. */
 
 .frame_menu {
-    line-height: 32px; /* center vertically */
-    height: 32px;
+    line-height: 42px; /* center vertically */
+    height: 42px;
     overflow-y: hidden;
     /* background: black; */
     /* color: white; */
-    border-bottom: 1px solid #dedede;
-    background: #f8f8f8;
-    color: black;
+    border-bottom: 1px solid var(--frame-border);
+    background: var(--bg);
+    color: var(--fg);
     padding: 0px 4px 0px 4px;
 }
 
@@ -104,42 +156,41 @@ button, input, optgroup, select, textarea {
     float: left;
     padding-left: 12px;
     padding-right: 12px;
-    line-height: 32px; /* center vertically */
-    height: 32px;
-    /* background: purple; */
-    /* color: white; */
-    background: #f8f8f8;
-    color: black;
+    line-height: 42px; /* center vertically */
+    height: 42px;
+    background: var(--bg);
+    color: var(--fg);
     font-size: 16px;
     font-weight: normal;
     overflow-y: hidden;
 }
 
 .frame_buttons {
-    height: 32px;
+    height: 42px;
 }
-.frame_buttons button {
+.frame_buttons button, button.barbutton {
     /* box-shadow: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.22); */
-    border: 0px solid #b0d5e2;
-    border-radius: 2px;
-    background: #f8f8f8;
-    color: #4263ab;
+    border: 1px solid var(--frame-border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--fg);
     font-weight: normal;
-    margin: 1px;
+    margin: 2px;
     padding: 4px 8px 4px 8px;
+    height: 28px;
 }
-.frame_buttons button:focus {
+.frame_buttons button:focus, button.barbutton:focus {
     outline: 0;
-    background: #4263ab;
-    color: white;
+    background: var(--code-bg);
+    color: var(--fg);
 }
-.frame_buttons button:hover {
-    background: #4263ab;
-    color: white;
+.frame_buttons button:hover, button.barbutton:hover {
+    background: var(--code-bg);
+    color: var(--fg);
 }
-.frame_buttons button:active {
-    background: #4263ab;
-    color: white;
+.frame_buttons button:active, button.barbutton:active {
+    background: var(--code-bg);
+    color: var(--fg);
 }
 
 button.killbutton {
@@ -160,16 +211,16 @@ button.killbutton:active {
 }
 
 .frame_buffers {
-    height: calc(100% - 32px); /* substract menu height */
-    background-color: #c0c0c0;
+    height: calc(100% - 42px); /* substract menu height */
+    background-color: var(--frame-border);
 }
 
 .buffer_title {
     font-size: 14px;
     line-height: 24px; /* center vertically */
     height: 24px;
-    background: #f4f4f4;
-    color: #888;
+    background: var(--bg); /* #f4f4f4 */
+    color: var(--header); /* #888 */
     /* font-weight: bold; */
     padding-left: 8px;
     padding-right: 8px;
@@ -183,7 +234,7 @@ button.killbutton:active {
     font-size: 14px;
     margin: 4px;
     padding: 4px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--border);
 }
 .menu_item > button { font-size: 14px; }
 .menu_item > input { font-size: 14px; }
@@ -197,12 +248,13 @@ button.killbutton:active {
 
 .menu_desc {
     padding: 2px;
-    color: #888;
+    color: var(--fg);
 }
 
 .menu_flag {
-    font-family: "Source Code Pro", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-    color: #008;
+    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
+    color: var(--code-fg);
+    background: var(--code-bg);
 }
 
 /* --------------------------------------------------------------------------- */
@@ -224,7 +276,7 @@ body {
 
 .content {
     /* border: 1px solid #C0C0C0; */
-    background-color: #fff;
+    background-color: var(--bg);
 }
 
 .gutter {
@@ -262,13 +314,13 @@ body {
     padding: 8px;
     width: 80%;
     max-height: calc(80% - 96px);
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 2px;
     /* box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); */
     /* box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); */
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     z-index: 9002;
-    background-color: white;
+    background-color: var(--bg);
     overflow-y: auto;
 }
 
@@ -277,9 +329,9 @@ body {
 /* (avoid animations: they consume CPU) */
 
 .in-progress {
-    color: white;
+    color: var(--bg);
     font-size: 16px;
-    height: 32px;
+    height: 42px;
     margin: 8px;
     position: absolute;
     right: 0px;

@@ -30,12 +30,8 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
 /////////////////////////////////////////////////////////////////////////////
 // constants
 
-  var declWords = [
-    "module", "pred", "use_module", "include", "doc", "export", "entry", "calls", "success", "prop", "regtype"];
-
   var separatorRE    = /[\->,;]/;
-  var separatorWords = [
-    "->",";",","];
+  var separatorWords = ["->",";",","];
 
 //  var operatorAtomWords = [
 //    "and","andalso","band","bnot","bor","bsl","bsr","bxor",
@@ -92,7 +88,7 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
 //    if (!peekToken(state) &&
 //        stream.match(/-\s*[a-zß-öø-ÿ][\wØ-ÞÀ-Öß-öø-ÿ]*/)) {
 //      if (is_member(stream.current(),declWords)) {
-//        return rval(state,stream,"ciao-decl");
+//        return rval(state,stream,"ciao-pred-decl");
 //      }else{
 //        return rval(state,stream,"attribute");
 //      }
@@ -194,8 +190,14 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
     // just a directive
     if (ch == ':' && stream.match(/-\s*/, false) && stream.column() == 0) {
       stream.match(/-\s*/,true);
+      if (stream.match(/module\(/, false) ||
+          stream.match(/use_module\(/, false) ||
+          stream.match(/include\(/, false)) {
+        stream.eatWhile(anumRE);
+        return rval(state,stream,"ciao-mod-decl");
+      }
       stream.eatWhile(anumRE);
-      return rval(state,stream,"ciao-decl");
+      return rval(state,stream,"ciao-pred-decl");
     }
 
     // Prolog variable
@@ -219,9 +221,7 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
 //        return rval(state,stream,"keyword");
 //      }else if (is_member(w,operatorAtomWords)) {
 //        return rval(state,stream,"operator");
-      if (is_member(w,declWords)) { // TODO: not everywhere!
-        return rval(state,stream,"ciao-decl");
-      }else if (stream.match(/\s*\(/,false)) {
+      if (stream.match(/\s*\(/,false)) {
 //        if (is_member(w,guardWords)) {
 //          return rval(state,stream,"guard");
 //        }else{
@@ -373,12 +373,12 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
       case "comment":     return "comment";
       case "dot":         return null;
       case "error":       return "error";
-      case "fun":         return "meta";
+      case "fun":         return null;
       case "function":    return null; //"tag";
       case "guard":       return "property";
       case "keyword":     return "keyword";
-      case "macro":       return "variable-2";
-      case "number":      return "number";
+      case "macro":       return "ciao-predname";
+      case "number":      return null;/*"number"*/
       case "open_paren":  return null;
       case "operator":    return "operator";
       case "record":      return "bracket";
@@ -386,8 +386,9 @@ CodeMirror.defineMode("ciao", function(cmCfg) {
       case "string":      return "string";
       case "decl":        return "def";
       case "variable":    return "variable";
-      case "ciao-decl": return "ciao-decl";
-      case "ciao-predname": return "variable-2";
+      case "ciao-mod-decl": return "ciao-mod-decl";
+      case "ciao-pred-decl": return "ciao-pred-decl";
+      case "ciao-predname": return "ciao-predname";
       case "ciao-variable": return "ciao-variable";
       case "ciao-status-check": return "ciao-status-check";
       case "ciao-status-true": return "ciao-status-true";
