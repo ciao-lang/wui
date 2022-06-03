@@ -354,7 +354,6 @@ bootstrap_theme_css_link(Theme) := R :-
 
 common_css_link := 'css/lpdoc.css'. % LPdoc % TODO: make it optional?
 common_css_link := 'css/website.css'. % (website extra) % TODO: make it optional?
-common_css_link := 'css/ciao-htmlfontify.css'. % Custom style for emacs htmlfontify
 
 % ---------------------------------------------------------------------------
 % TODO: duplicated (htmlurl/1 changes)
