@@ -30,7 +30,7 @@ $ ciao custom_run . dist
    procedure calls (using active modules and a HTTP/CGI to JSON
    gateway program).
 
- - Allow client-side Prolog processes using `ciaojs` (bundle)
+ - Allow client-side Prolog processes using `ciaowasm` (bundle)
 
  - `FormData()` is very limited on Safari. There is no simple
    workaroud, except creating a single form for upload and obtaining
