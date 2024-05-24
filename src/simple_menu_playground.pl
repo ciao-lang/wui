@@ -55,6 +55,7 @@ timeout(10000). % milliseconds % TODO: customize?
 
 :- use_module(library(pathnames), [path_concat/3, path_split/3]).
 
+:- use_module(library(menu/menu_json)).
 :- use_module(wui(ciao_playground)).
 :- use_module(wui(ciao_pg_ui), _, [active]).
 
